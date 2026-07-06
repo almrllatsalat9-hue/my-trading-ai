@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <title>AI PRO TRADER - لوحة التحكم</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>body { background-color: #090d16; color: white; }</style>
+</head>
+<body class="p-4">
+    <!-- قسم المساعد الفني -->
+    <div class="bg-gray-800 p-4 rounded-xl border border-blue-500 mb-6">
+        <h2 class="text-blue-400 font-bold mb-3 text-center">✅ قائمة التأكد قبل الصفقة</h2>
+        <ul class="text-xs space-y-2 text-gray-300">
+            <li>🔹 <b>RSI:</b> هل هو فوق 70 (للبيع) أو تحت 30 (للشراء)؟</li>
+            <li>🔹 <b>Bollinger:</b> هل السعر لامس الخطوط الخارجية؟</li>
+            <li>🔹 <b>الاتجاه:</b> هل الإشارة مع اتجاه الـ SMA (50)؟</li>
+            <li>🔹 <b>السوق:</b> تأكد أنك تتداول في السوق الحقيقي وليس OTC.</li>
+        </ul>
+    </div>
+
+    <!-- الإحصائيات -->
+    <div class="grid grid-cols-2 gap-3 mb-6 text-center">
+        <div class="bg-gray-900 p-2 rounded">رابحة: <span id="stat-wins" class="text-green-400 font-bold">0</span></div>
+        <div class="bg-gray-900 p-2 rounded">خاسرة: <span id="stat-losses" class="text-red-400 font-bold">0</span></div>
+    </div>
+
+    <button onclick="addNewTrade('win')" class="w-full bg-green-700 py-2 rounded font-bold mb-2">+ صفقة رابحة</button>
+    <button onclick="addNewTrade('loss')" class="w-full bg-red-700 py-2 rounded font-bold mb-4">+ صفقة خاسرة</button>
+
+    <div id="trades-list" class="space-y-2"></div>
+
+    <script>
+        let trades = JSON.parse(localStorage.getItem('myTrades')) || [];
+
+        // دالة التنبيه الصوتي
+        function playSound() {
+            const audio = new Audio('https://actions.google.com/sounds/v1/notifications/beep_short.ogg');
+            audio.play();
+        }
+
+        function updateStats() {
+            const wins = trades.filter(t => t.type === 'win').length;
+            const losses = trades.filter(t => t.type === 'loss').length;
+            document.getElementById('stat-wins').innerText = wins;
+            document.getElementById('stat-losses').innerText = losses;
+            
+            const list = document.getElementById('trades-list');
+            list.innerHTML = trades.map(t => `
+                <div class="bg-gray-900 p-2 rounded text-xs flex justify-between">
+                    <span>${t.pair} (${t.market})</span>
+                    <span class="${t.type === 'win' ? 'text-green-400' : 'text-red-400'}">${t.type === 'win' ? '✅' : '❌'}</span>
+                </div>
+            `).reverse().join('');
+        }
+
+        function addNewTrade(type) {
+            const pair = prompt("رمز العملة (مثال: EURUSD):");
+            const market = prompt("نوع السوق (OTC أو حقيقي):");
+            if (!pair || !market) return;
+            
+            trades.push({ pair, market, type });
+            localStorage.setItem('myTrades', JSON.stringify(trades));
+            playSound(); // تفعيل التنبيه عند الإضافة
+            updateStats();
+        }
+
+        updateStats();
+    </script>
+</body>
+</html>
